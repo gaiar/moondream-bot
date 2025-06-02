@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MKL_DYNAMIC=TRUE \
     KMP_AFFINITY=granularity=fine,compact,1,0 \
     KMP_BLOCKTIME=1 \
-    LD_PRELOAD=/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_def.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx2.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_thread.so
+    MKL_LIB_PATH=/opt/intel/oneapi/mkl/latest/lib/intel64
 
 # Add Intel oneAPI repository
 RUN apt-get update && apt-get install -y \
@@ -33,6 +33,13 @@ RUN apt-get update && apt-get install -y \
     intel-oneapi-mkl \
     intel-oneapi-mkl-devel \
     && rm -rf /var/lib/apt/lists/*
+
+# Set LD_PRELOAD after MKL installation
+ENV LD_PRELOAD=/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_def.so:\
+/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx2.so:\
+/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so:\
+/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so:\
+/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_thread.so
 
 # Set work directory
 WORKDIR /app
