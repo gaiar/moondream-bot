@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     libnuma1 \
     libvips-dev \
+    libvips42 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
