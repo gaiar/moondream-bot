@@ -1,17 +1,14 @@
 # Use official Python runtime as base image
 FROM python:3.11-slim
 
-# Set environment variables for CPU optimization with Intel MKL
+# Set environment variables for CPU optimization
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    MKL_NUM_THREADS=0 \
-    OMP_NUM_THREADS=0 \
-    MKL_DYNAMIC=TRUE \
-    KMP_AFFINITY=granularity=fine,compact,1,0 \
-    KMP_BLOCKTIME=1 \
-    MKL_LIB_PATH=/opt/intel/oneapi/mkl/latest/lib/intel64
+    MKL_NUM_THREADS=4 \
+    OMP_NUM_THREADS=4 \
+    MKL_DYNAMIC=TRUE
 
 # Add Intel oneAPI repository
 RUN apt-get update && apt-get install -y \
@@ -32,14 +29,13 @@ RUN apt-get update && apt-get install -y \
     libvips42 \
     intel-oneapi-mkl \
     intel-oneapi-mkl-devel \
+    intel-oneapi-openmp \
     && rm -rf /var/lib/apt/lists/*
 
-# Set LD_PRELOAD after MKL installation
-ENV LD_PRELOAD=/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_def.so:\
-/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx2.so:\
-/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so:\
-/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so:\
-/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_thread.so
+# Configure MKL environment after installation
+ENV MKL_INTERFACE_LAYER=LP64 \
+    MKL_THREADING_LAYER=GNU \
+    LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/latest/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
 
 # Set work directory
 WORKDIR /app
