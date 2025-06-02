@@ -1,0 +1,165 @@
+Moondream logo
+Moondream
+Quick Start
+Blog
+Select a display theme:
+
+system
+
+light
+
+dark
+Log in / Sign up
+PLAYGROUND
+Playground
+CLOUD
+API Keys
+Usage
+DOCS
+Quickstart
+Capabilities
+Advanced
+Changelog
+Documentation
+Advanced
+Using Moondream with Transformers - Documentation
+This guide shows you how to run Moondream directly with Hugging Face Transformers, giving you maximum control over model execution and parameters.
+
+Prerequisites
+First, you'll need to install the core dependencies:
+
+Terminal
+pip install transformers torch pillow einops
+System Requirements
+RAM: 8GB+ (16GB recommended) - Storage: 5GB for model weights - GPU: Recommended but not required (4GB+ VRAM) - Python: 3.8 or higher
+Platform-Specific Setup
+Linux/Max
+Windows
+# Install pyvips for faster image processing
+pip install pyvips-binary pyvips
+Basic Usage
+Here's a simple example demonstrating the core Moondream capabilities:
+
+python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from PIL import Image
+ 
+# Load the model
+ 
+model = AutoModelForCausalLM.from_pretrained(
+"vikhyatk/moondream2",
+revision="2025-01-09",
+trust_remote_code=True, # Uncomment for GPU acceleration & pip install accelerate # device_map={"": "cuda"}
+)
+ 
+# Load your image
+ 
+image = Image.open("path/to/your/image.jpg")
+ 
+# 1. Image Captioning
+ 
+print("Short caption:")
+print(model.caption(image, length="short")["caption"])
+ 
+print("Detailed caption:")
+for t in model.caption(image, length="normal", stream=True)["caption"]:
+print(t, end="", flush=True)
+ 
+# 2. Visual Question Answering
+ 
+print("Asking questions about the image:")
+print(model.query(image, "How many people are in the image?")["answer"])
+ 
+# 3. Object Detection
+ 
+print("Detecting objects:")
+objects = model.detect(image, "face")["objects"]
+print(f"Found {len(objects)} face(s)")
+ 
+# 4. Visual Pointing
+ 
+print("Locating objects:")
+points = model.point(image, "person")["points"]
+print(f"Found {len(points)} person(s)")
+Advanced Features
+GPU Acceleration
+To enable GPU acceleration:
+
+enable_gpu
+model = AutoModelForCausalLM.from_pretrained(
+    "vikhyatk/moondream2",
+    revision="2025-01-09",
+    trust_remote_code=True,
+    device_map={"": "cuda"},  # Use "cuda" for NVIDIA GPUs
+)
+Multiple Model Instances
+If you have enough VRAM (4-5GB per instance), you can run multiple instances of the model for parallel processing:
+
+multiple_instances
+model = AutoModelForCausalLM.from_pretrained(
+    "vikhyatk/moondream2",
+    revision="2025-01-09",
+    trust_remote_code=True,
+    device_map={"": "cuda"},
+)
+ 
+model2 = AutoModelForCausalLM.from_pretrained(
+"vikhyatk/moondream2",
+revision="2025-01-09",
+trust_remote_code=True,
+device_map={"": "cuda"},
+)
+Efficient Image Encoding
+For multiple operations on the same image, encode it once to save processing time:
+
+pre-encode
+image = Image.open("path/to/your/image.jpg")
+encoded_image = model.encode_image(image)
+ 
+# Reuse the encoded image for each inference
+ 
+print(model.caption(encoded_image, length="short")["caption"])
+print(model.query(encoded_image, "How many people are in the image?")["answer"])
+API Reference
+Captioning
+caption
+model.caption(image, length="normal", stream=False)
+Parameter	Type	Description
+image	PIL.Image or encoded image	The image to process
+length	str	Caption detail level: "short" or "normal"
+stream	bool	Whether to stream the response token by token
+Visual Question Answering
+query
+model.query(image, question, stream=False)
+Parameter	Type	Description
+image	PIL.Image or encoded image	The image to process
+question	str	The question to ask about the image
+stream	bool	Whether to stream the response token by token
+Object Detection
+object detection
+model.detect(image, object_name)
+Parameter	Type	Description
+image	PIL.Image or encoded image	The image to process
+object_name	str	The type of object to detect
+Visual Pointing
+pointing
+model.point(image, object_name)
+Parameter	Type	Description
+image	PIL.Image or encoded image	The image to process
+object_name	str	The type of object to locate
+Performance Optimization
+Best Practices
+Use GPU acceleration when possible - Reuse encoded images for multiple operations - For batch processing, pre-load the model once - Process images in batches rather than loading/unloading the model repeatedly - Resize very large images to reasonable dimensions before processing - Use quantization for deployment on memory-constrained devices
+Troubleshooting
+Common Issues
+Out of Memory: Reduce image size or use lighter model variant
+Slow Performance: Enable GPU acceleration and reuse encoded images
+Library Errors: Ensure all dependencies are installed correctly
+Unexpected Results: Check image formatting and question clarity
+Next Steps
+Now that you understand how to use Moondream with Transformers, you might want to:
+
+Try advanced prompting techniques
+Integrate Moondream into your own applications
+Create custom pipelines for specialized tasks
+Explore our recipes for common use cases
