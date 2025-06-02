@@ -1,13 +1,24 @@
 # Use official Python runtime as base image
 FROM python:3.11-slim
 
-# Set environment variables for CPU optimization
+# Set environment variables for CPU optimization with Intel MKL
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    MKL_NUM_THREADS=0 \
+    OMP_NUM_THREADS=0 \
+    MKL_DYNAMIC=TRUE \
     KMP_AFFINITY=granularity=fine,compact,1,0 \
-    KMP_BLOCKTIME=1
+    KMP_BLOCKTIME=1 \
+    LD_PRELOAD=/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_def.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx2.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so:/opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_thread.so
+
+# Add Intel oneAPI repository
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    && wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
 
 # Install system dependencies including Intel MKL optimization libraries and libvips for pyvips
 RUN apt-get update && apt-get install -y \
@@ -19,6 +30,8 @@ RUN apt-get update && apt-get install -y \
     libnuma1 \
     libvips-dev \
     libvips42 \
+    intel-oneapi-mkl \
+    intel-oneapi-mkl-devel \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
